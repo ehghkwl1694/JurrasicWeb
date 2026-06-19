@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html class="dark scroll-smooth" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>JurassicWeb</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Manrope:wght@200..800&amp;display=swap"
+        rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet">
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#454840",
+                        "surface-tint": "#bacda4",
+                        "on-surface-variant": "#c6c7bd",
+                        "inverse-surface": "#e3e3de",
+                        "surface-bright": "#383a36",
+                        "tertiary": "#eebd8e",
+                        "surface-container": "#1e201d",
+                        "primary": "#bacda4",
+                        "secondary-fixed-dim": "#d1c5b4",
+                        "surface": "#000000",
+                        "secondary-fixed": "#eee0cf",
+                        "tertiary-fixed": "#ffdcbd",
+                        "on-surface": "#e3e3de",
+                        "on-primary": "#263518",
+                        "on-tertiary-fixed": "#2c1600",
+                        "on-tertiary-container": "#be9166",
+                        "secondary-container": "#4e4639",
+                        "primary-fixed-dim": "#bacda4",
+                        "error": "#ffb4ab",
+                        "primary-fixed": "#d6e9be",
+                        "surface-container-high": "#292b27",
+                        "on-tertiary-fixed-variant": "#61401b",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-highest": "#333532",
+                        "on-primary-fixed-variant": "#3c4c2c",
+                        "on-primary-fixed": "#111f05",
+                        "outline": "#909289",
+                        "on-background": "#e3e3de",
+                        "background": "#000000",
+                        "on-secondary-fixed": "#211b10",
+                        "on-secondary-fixed-variant": "#4e4639",
+                        "surface-dim": "#000000",
+                        "on-secondary-container": "#c0b3a3",
+                        "on-error": "#690005",
+                        "on-secondary": "#372f24",
+                        "error-container": "#93000a",
+                        "secondary": "#d1c5b4",
+                        "tertiary-container": "#492b08",
+                        "on-tertiary": "#472a06",
+                        "surface-variant": "#333532",
+                        "surface-container-lowest": "#0d0f0c",
+                        "on-primary-container": "#8ea079",
+                        "inverse-primary": "#536442",
+                        "inverse-on-surface": "#2f312e",
+                        "tertiary-fixed-dim": "#eebd8e",
+                        "surface-container-low": "#1a1c19",
+                        "primary-container": "#273619"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Newsreader", "serif"],
+                        "body": ["x12y12pxMaruMinyaHangul", "sans-serif"],
+                        "label": ["Manrope", "sans-serif"],
+                        "maruminya": ["x12y12pxMaruMinyaHangul", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        @font-face {
+            font-family: 'x12y12pxMaruMinyaHangul';
+            src: url('assets/x12y12pxMaruMinyaHangul.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .strata-line {
+            background: linear-gradient(to bottom, #bacda4, #eebd8e, #93000a);
+        }
+
+        .editorial-shadow {
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        /* 상세 페이지 애니메이션 로직 (분할 화면 스타일) */
+        #dino-map-container {
+            width: 100vw;
+            height: calc(100vh - 60px);
+            overflow-x: auto;
+            overflow-y: hidden;
+            background: #000;
+            scrollbar-width: none;
+        }
+
+        #dino-map-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        #dino-map-main {
+            background-image: url('bg.png'), linear-gradient(to bottom, #000000 90%, #060B3A 90%);
+            background-repeat: repeat-x, no-repeat;
+            background-position: left top, left top;
+            background-size: auto 90%, 100% 100%;
+            background-color: #000;
+            height: 100%;
+        }
+
+        .dino-star {
+            image-rendering: -moz-crisp-edges;
+            image-rendering: -webkit-crisp-edges;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Modal Active States */
+        body.modal-open #modal-backdrop {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        body.modal-open #dino-detail-page {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        aside {
+            transition: opacity 0.5s ease;
+        }
+
+        /* Retro 8-bit Style Progress Bar */
+        #progress-bar-container {
+            height: 60px;
+            background: rgba(0, 0, 0, 0.5);
+            border-top: 4px solid #000;
+            border-bottom: 4px solid #000;
+            border-left: none;
+            border-right: none;
+            position: relative;
+            box-shadow: 0 -4px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        #progress-bar-fill {
+            height: 100%;
+            background: #5AFF00;
+            /* Segmented block effect using repeating gradient */
+            background-image: repeating-linear-gradient(90deg,
+                    transparent,
+                    transparent 16px,
+                    rgba(0, 0, 0, 0.4) 16px,
+                    rgba(0, 0, 0, 0.4) 20px);
+            width: 0%;
+            transition: width 0.1s linear, background-color 0.4s ease;
+        }
+
+        #progress-dot {
+            width: 44px;
+            height: 44px;
+            background: #ff0000;
+            border: 6px solid #000;
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
+            z-index: 10;
+            left: 0%;
+        }
+
+        .progress-tick {
+            position: absolute;
+            width: 12px;
+            height: 100%;
+            top: 0;
+            background-color: #ffffff;
+            border: 4px solid #000000;
+            z-index: 8;
+            transform: translateX(-50%);
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body class="bg-background text-on-surface font-body selection:bg-primary selection:text-on-primary overflow-hidden">
+    <!-- 인트로 페이지 (Intro Overlay) -->
+    <div id="intro-overlay"
+        class="fixed inset-0 bg-black/70 z-[999] flex flex-col items-center justify-center cursor-pointer transition-opacity duration-700 ease-out"
+        onclick="dismissIntro()">
+        <div class="text-center px-6 max-w-3xl select-none">
+            <h1
+                class="font-maruminya text-5xl md:text-4xl text-[#FFE600] font-black tracking-widest mb-6 leading-none select-none">
+                쥬라기웹에 어서오세요!
+            </h1>
+            <p class="font-maruminya text-lg md:text-xl text-[#E1ECF9] tracking-wide mb-12 select-none leading-relaxed">
+                쥬라기웹은 시간을 거슬러 올라가며 어떤 공룡들이<br>
+                과거, 이 지구에 존재했었는지 알아가는 공간입니다.<br>
+                어떤 공룡들이 어떤 시대에서 살아가고있었는지 확인해보세요!<br>
+                <br>
+                마우스를 올려 공룡의 이름을 확인하고,<br>
+                <span class="whitespace-nowrap">클릭하여 더 깊게 탐구할 수도 있습니다.</span>
+            </p>
+            <span class="font-maruminya text-xs md:text-lg text-[#FFE600]/60 tracking-widest animate-pulse select-none">
+                - 화면을 클릭하면 탐험이 시작됩니다 -
+            </span>
+        </div>
+    </div>
+
+    <!-- 하단 네비게이션 바 (8-bit Progress Bar) -->
+    <nav class="fixed bottom-0 left-0 right-0 z-50">
+        <div id="progress-bar-container" class="w-full cursor-pointer">
+            <div id="progress-bar-fill"></div>
+            <div id="progress-dot"></div>
+        </div>
+    </nav>
+
+    <!-- 메인 지도 -->
+    <div id="dino-map-container">
+        <main id="dino-map-main" class="relative w-full overflow-hidden">
+            <!-- Stars rendered here -->
+        </main>
+    </div>
+
+    <!-- 8-bit Quest Modal -->
+    <div id="modal-backdrop"
+        class="fixed inset-0 bg-black/60 z-[100] opacity-0 pointer-events-none transition-opacity duration-300 backdrop-blur-sm"
+        onclick="closeDetailPage()"></div>
+
+    <section id="dino-detail-page"
+        class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[110] w-[800px] h-[800px] pointer-events-none opacity-0 transition-all duration-300 scale-95 flex items-center justify-center">
+        <!-- 8-bit scroll background -->
+        <div class="absolute inset-0 bg-[url('assets/dinos/scroll.png')] bg-contain bg-center bg-no-repeat w-full h-full"
+            style="image-rendering: pixelated; filter: drop-shadow(15px 15px 0px rgba(0,0,0,0.5));"></div>
+
+        <!-- Content Container -->
+        <div id="detail-content-container"
+            class="relative z-10 w-[60%] h-[55%] overflow-y-auto scrollbar-hide font-['Manrope'] p-2 text-[#3c2a1e] mb-12">
+            <div class="mb-3 text-center">
+                <span id="detail-type-tag"
+                    class="px-2 py-1 bg-[#5e432e] text-[#f4e4d4] text-[12px] uppercase tracking-[0.2em] rounded border-2 border-[#3c2a1e] shadow-[2px_2px_0_rgba(0,0,0,0.3)]"></span>
+            </div>
+            <h1 id="detail-name" class="text-4xl font-black mb-1 text-center tracking-tighter uppercase leading-none">
+            </h1>
+            <p id="detail-meaning"
+                class="text-sm text-[#5e432e]/70 mb-8 italic font-['Newsreader'] text-center font-bold"></p>
+
+            <div class="grid grid-cols-2 gap-4 mb-8 pt-6 border-t-4 border-[#5e432e]/30 border-dotted">
+                <div>
+                    <h3 class="uppercase tracking-[0.1em] text-[11px] font-black mb-1 opacity-70">식성</h3>
+                    <p id="detail-diet" class="text-xl font-bold"></p>
+                </div>
+                <div>
+                    <h3 class="uppercase tracking-[0.1em] text-[11px] font-black mb-1 opacity-70">생존 시기</h3>
+                    <p id="detail-period" class="text-xl font-bold"></p>
+                </div>
+                <div>
+                    <h3 class="uppercase tracking-[0.1em] text-[11px] font-black mb-1 opacity-70">발견 지역</h3>
+                    <p id="detail-location" class="text-xl font-bold"></p>
+                </div>
+                <div>
+                    <h3 class="uppercase tracking-[0.1em] text-[11px] font-black mb-1 opacity-70">신체 정보</h3>
+                    <p id="detail-specs" class="text-xl font-bold"></p>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <h2 class="text-2xl font-black tracking-tight border-b-4 border-[#5e432e]/30 border-dotted pb-2">생태 및 특징
+                </h2>
+                <div id="detail-description" class="text-base leading-relaxed space-y-4 font-bold">
+                    <!-- Content -->
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- 지질학적 사건 라벨 -->
+    <div id="geological-event-label"
+        class="fixed z-40 pointer-events-none select-none font-maruminya opacity-0 transition-opacity duration-150 ease-out text-xs md:text-sm text-white/40 font-black tracking-wider leading-snug"
+        style="top: 80%; left: 58%;">
+        같은 시각,<br>지구에서 벌어진 일
+    </div>
+
+    <!-- 지질학적 사건 표시창 (Geological Event Overlay) -->
+    <div id="geological-event-overlay"
+        class="fixed z-40 pointer-events-none text-left select-none font-maruminya w-[32%] max-w-[500px] opacity-0 transition-opacity duration-150 ease-out"
+        style="top: 80%; left: 65%;">
+        <div class="flex flex-col items-start gap-1">
+            <span id="geo-event-title-ko"
+                class="text-lg md:text-xl text-[#FFE600] font-black tracking-wide leading-tight mb-1"></span>
+            <p id="geo-event-desc" class="text-xs md:text-sm text-[#E1ECF9] leading-relaxed font-medium"></p>
+            <p id="geo-event-impact" class="text-[10px] md:text-xs text-white/40 leading-normal mt-1 font-normal">
+            </p>
+        </div>
+    </div>
+
+    <aside
+        class="fixed bottom-[90px] left-1/2 -translate-x-1/2 z-40 flex flex-col items-center pointer-events-none w-full max-w-sm">
+
+        <div class="px-10 py-5 pointer-events-auto flex flex-col items-center w-full max-w-[250px]">
+            <!-- 시대 라벨창 (상단) -->
+            <div class="relative w-full h-[40px] flex items-center justify-center mb-3">
+                <div id="era-holocene"
+                    class="absolute inset-x-0 flex items-center justify-center transition-opacity duration-700 opacity-100">
+                    <span
+                        class="font-maruminya tracking-widest text-[30px] text-[#5AFF00] font-black whitespace-nowrap">홀로세</span>
+                </div>
+                <div id="era-cretaceous"
+                    class="absolute inset-x-0 flex items-center justify-center transition-opacity duration-700 opacity-0">
+                    <span
+                        class="font-maruminya tracking-widest text-[30px] text-[#5AFF00] font-black whitespace-nowrap">백악기</span>
+                </div>
+                <div id="era-jurassic"
+                    class="absolute inset-x-0 flex items-center justify-center transition-opacity duration-700 opacity-0">
+                    <span
+                        class="font-maruminya tracking-widest text-[30px] text-[#FFE600] font-black whitespace-nowrap">쥬라기</span>
+                </div>
+                <div id="era-triassic"
+                    class="absolute inset-x-0 flex items-center justify-center transition-opacity duration-700 opacity-0">
+                    <span
+                        class="font-maruminya tracking-widest text-[30px] text-[#FF9900] font-black whitespace-nowrap">트라이아스기</span>
+                </div>
+            </div>
+
+            <!-- 수치 표시창 (하단) -->
+            <div class="flex flex-col items-center w-full space-y-6">
+                <div class="flex items-baseline space-x-2 justify-center whitespace-nowrap">
+                    <span id="depth-counter"
+                        class="font-maruminya text-2xl text-[#E1ECF9] font-bold tabular-nums tracking-normal leading-none whitespace-nowrap">0</span>
+                    <span
+                        class="font-maruminya text-[20px] text-[#E1ECF9] tracking-widest font-semibold ml-1 whitespace-nowrap">년
+                        전</span>
+                </div>
+
+                <!-- 검색창 (Requirement: Search Bar) -->
+                <div class="w-full px-4 relative group">
+                    <input type="text" id="dino-search" placeholder="공룡 검색..."
+                        class="w-full bg-transparent text-white font-maruminya text-sm py-1 outline-none placeholder:text-white/20 text-center">
+                    <div id="search-suggestions"
+                        class="absolute top-full left-0 right-0 bg-black/90 mt-2 rounded-lg border border-white/10 overflow-hidden max-h-0 transition-all duration-300 z-50"
+                        style="border-width: 0px;">
+                        <!-- Suggestions will appear here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- 공룡 데이터 및 번역 스크립트 -->
+    <script src="dino_names.js"></script>
+    <script src="dino_details.js"></script>
+
+    <script src="dino_data.js"></script>
+    <script>
+        const bgMusic = new Audio('assets/배경음악.mp4');
+        bgMusic.loop = true;
+        bgMusic.volume = 0.3;
+        bgMusic.preload = 'auto';
+
+        let bgMusicPlayStarted = false;
+        function dismissIntro() {
+            const intro = document.getElementById('intro-overlay');
+            if (intro) {
+                if (!bgMusicPlayStarted) {
+                    bgMusicPlayStarted = true;
+                    bgMusic.play().catch(err => {
+                        console.warn("Failed to play background music:", err);
+                        bgMusicPlayStarted = false;
+                    });
+                }
+                intro.classList.add('opacity-0', 'pointer-events-none');
+                setTimeout(() => {
+                    intro.remove();
+                }, 700);
+            }
+        }
+        window.dismissIntro = dismissIntro;
+
+        // Temporary Communication Grid Overlay generator
+        document.addEventListener('DOMContentLoaded', () => {
+            const grid = document.createElement('div');
+            grid.id = 'comm-grid-overlay';
+            grid.style.position = 'fixed';
+            grid.style.inset = '0';
+            grid.style.zIndex = '9999';
+            grid.style.pointerEvents = 'none';
+            grid.style.display = 'none'; // Hidden temporarily as requested
+
+            // Draw horizontal lines (y: 10% to 90%)
+            for (let percent = 10; percent <= 90; percent += 10) {
+                const line = document.createElement('div');
+                line.style.position = 'absolute';
+                line.style.left = '0';
+                line.style.right = '0';
+                line.style.top = `${percent}%`;
+                line.style.height = '1px';
+                line.style.borderTop = '1px dashed rgba(255, 0, 128, 0.7)'; // neon pink dashed line
+
+                const label = document.createElement('span');
+                label.innerText = `Y: ${percent}%`;
+                label.style.position = 'absolute';
+                label.style.left = '10px';
+                label.style.top = '-15px';
+                label.style.color = '#ff0080';
+                label.style.fontFamily = 'monospace';
+                label.style.fontSize = '10px';
+                label.style.backgroundColor = 'rgba(0,0,0,0.8)';
+                label.style.padding = '2px 4px';
+                label.style.borderRadius = '3px';
+
+                line.appendChild(label);
+                grid.appendChild(line);
+            }
+
+            // Draw vertical lines (x: 10% to 90%)
+            for (let percent = 10; percent <= 90; percent += 10) {
+                const line = document.createElement('div');
+                line.style.position = 'absolute';
+                line.style.top = '0';
+                line.style.bottom = '0';
+                line.style.left = `${percent}%`;
+                line.style.width = '1px';
+                line.style.borderLeft = '1px dashed rgba(0, 191, 255, 0.7)'; // deep sky blue vertical line
+
+                const label = document.createElement('span');
+                label.innerText = `X: ${percent}%`;
+                label.style.position = 'absolute';
+                label.style.top = '10px';
+                label.style.left = '5px';
+                label.style.color = '#00bfff';
+                label.style.fontFamily = 'monospace';
+                label.style.fontSize = '10px';
+                label.style.backgroundColor = 'rgba(0,0,0,0.8)';
+                label.style.padding = '2px 4px';
+                label.style.borderRadius = '3px';
+
+                line.appendChild(label);
+                grid.appendChild(line);
+            }
+
+            document.body.appendChild(grid);
+        });
+    </script>
+</body>
+
+</html>
